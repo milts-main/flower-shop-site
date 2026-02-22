@@ -20,6 +20,10 @@
     <h1>Наши букеты 🌸</h1>
 
     {% for flower in flowers %}
+    <form action="{% url 'add_to_cart' flower.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Добавить в корзину</button>
+    </form>
         <div style="border:1px solid black; margin:10px; padding:10px;">
             <h2>{{ flower.name }}</h2>
             <p>{{ flower.description }}</p>

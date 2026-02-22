@@ -1,0 +1,18 @@
+<h1>Ваша корзина 🛒</h1>
+
+{% if items %}
+    <ul>
+    {% for item in items %}
+        <li>{{ item.flower.name }} - {{ item.quantity }} x {{ item.flower.price }} € = {{ item.total_price }} €</li>
+    {% endfor %}
+    </ul>
+
+    <p><strong>Итого: {{ total }} €</strong></p>
+    <form method="post" action="{% url 'checkout' %}">
+        {% csrf_token %}
+        <button type="submit">Оформить заказ</button>
+    </form>
+
+{% else %}
+    <p>Корзина пуста</p>
+{% endif %}

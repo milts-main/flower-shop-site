@@ -14,11 +14,27 @@ class Flower(models.Model):
         return self.name
 
 class Order(models.Model):
+    STATUS_CHOICES = [
+        ('cart', 'В корзине'),
+        ('placed', 'Оформлен'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='cart')
+
+    def __str__(self):
+        return f"Order {self.id} ({self.user.username})"
+
+    def total_price(self):
+        return sum(item.total_price() for item in self.items.all())
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    flower = models.ForeignKey(Flower, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    flower = models.ForeignKey('Flower', on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
+
+    def total_price(self):
+        return self.flower.price * self.quantity
+
+    def __str__(self):
+        return f"{self.quantity} x {self.flower.name}"
