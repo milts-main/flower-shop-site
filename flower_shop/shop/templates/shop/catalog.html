@@ -1,38 +1,75 @@
-{% if user.is_authenticated %}
-    Привет, {{ user.username }}!
 
-    <form method="post" action="{% url 'logout' %}" style="display:inline;">
-        {% csrf_token %}
-        <button type="submit">Выйти</button>
-    </form>
-
-{% else %}
-    <a href="{% url 'login' %}">Войти</a> | 
-    <a href="{% url 'register' %}">Регистрация</a>
-{% endif %}
 
 <!DOCTYPE html>
 <html>
 <head>
     <title>Каталог цветов</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{% url 'catalog' %}">🌸 FlowerShop</a>
+
+    <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+
+            {% if user.is_authenticated %}
+                <li class="nav-item me-3">
+                    <span class="navbar-text text-white">
+                        Привет, {{ user.username }}
+                    </span>
+                </li>
+
+                <li class="nav-item me-3">
+                    <a class="btn btn-warning" href="{% url 'cart' %}">
+                        🛒 Корзина ({{ cart_count }})
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-danger">Выйти</button>
+                    </form>
+                </li>
+            {% else %}
+                <li class="nav-item me-2">
+                    <a class="btn btn-success" href="{% url 'login' %}">Войти</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-primary" href="{% url 'register' %}">Регистрация</a>
+                </li>
+            {% endif %}
+
+        </ul>
+    </div>
+</nav>
     <h1>Наши букеты 🌸</h1>
 
-    {% for flower in flowers %}
-    <form action="{% url 'add_to_cart' flower.id %}" method="post">
-        {% csrf_token %}
-        <button type="submit">Добавить в корзину</button>
-    </form>
-        <div style="border:1px solid black; margin:10px; padding:10px;">
-            <h2>{{ flower.name }}</h2>
-            <p>{{ flower.description }}</p>
-            <p>Цена: {{ flower.price }} €</p>
+   <div class="container mt-4">
+    <div class="row">
+        {% for flower in flowers %}
+        <div class="col-md-4">
+            <div class="card mb-4">
+                {% if flower.image %}
+                    <img src="{{ flower.image.url }}" class="card-img-top" height="250">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ flower.name }}</h5>
+                    <p class="card-text">{{ flower.description }}</p>
+                    <p><strong>{{ flower.price }} €</strong></p>
 
-            {% if flower.image %}
-                <img src="{{ flower.image.url }}" width="200">
-            {% endif %}
+                    <form action="{% url 'add_to_cart' flower.id %}" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-success">Добавить в корзину</button>
+                    </form>
+
+                </div>
+            </div>
         </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
+</div>
 </body>
 </html>

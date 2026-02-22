@@ -10,7 +10,17 @@ from django.shortcuts import get_object_or_404
 
 def catalog(request):
     flowers = Flower.objects.all()
-    return render(request, 'shop/catalog.html', {'flowers': flowers})
+
+    if request.user.is_authenticated:
+        order = Order.objects.filter(user=request.user, status='cart').first()
+        cart_count = order.items.count() if order else 0
+    else:
+        cart_count = 0
+
+    return render(request, 'shop/catalog.html', {
+        'flowers': flowers,
+        'cart_count': cart_count
+    })
 
 def register(request):
     if request.method == 'POST':
