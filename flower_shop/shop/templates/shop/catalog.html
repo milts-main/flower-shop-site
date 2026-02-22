@@ -1,0 +1,29 @@
+{% if user.is_authenticated %}
+    Привет, {{ user.username }}! 
+    <a href="{% url 'logout' %}">Выйти</a>
+{% else %}
+    <a href="{% url 'login' %}">Войти</a> | 
+    <a href="{% url 'register' %}">Регистрация</a>
+{% endif %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Каталог цветов</title>
+</head>
+<body>
+    <h1>Наши букеты 🌸</h1>
+
+    {% for flower in flowers %}
+        <div style="border:1px solid black; margin:10px; padding:10px;">
+            <h2>{{ flower.name }}</h2>
+            <p>{{ flower.description }}</p>
+            <p>Цена: {{ flower.price }} €</p>
+
+            {% if flower.image %}
+                <img src="{{ flower.image.url }}" width="200">
+            {% endif %}
+        </div>
+    {% endfor %}
+</body>
+</html>
