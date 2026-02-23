@@ -18,6 +18,9 @@ class Order(models.Model):
         ('cart', 'В корзине'),
         ('placed', 'Оформлен'),
     ]
+    address = models.CharField(max_length=255, null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
+    comment = models.TextField(null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='cart')
@@ -25,16 +28,26 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.id} ({self.user.username})"
 
-    def total_price(self):
-        return sum(item.total_price() for item in self.items.all())
+    # Итоговая стоимость всего заказа
+    @property
+    def total_cost(self):
+        return sum(item.total_price for item in self.items.all())
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
-    flower = models.ForeignKey('Flower', on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=1)
-
-    def total_price(self):
-        return self.flower.price * self.quantity
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    flower = models.ForeignKey(Flower, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"{self.quantity} x {self.flower.name}"
+
+    # Цена за одну единицу — берем price из OrderItem или цену цветка
+    @property
+    def unit_price(self):
+        return self.price if self.price else self.flower.price
+
+    # Итоговая цена этого OrderItem
+    @property
+    def total_price(self):
+        return self.unit_price * self.quantity

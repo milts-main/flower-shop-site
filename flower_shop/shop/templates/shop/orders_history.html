@@ -1,0 +1,51 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">📦 Мои заказы</h2>
+
+    {% if orders %}
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for order in orders %}
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            Заказ №{{ order.id }} — {{ order.date|date:"d.m.Y H:i" }}
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Статус:</strong> 
+                                {% if order.status == 'cart' %}
+                                    🛒 В корзине
+                                {% elif order.status == 'placed' %}
+                                    ⏳ В обработке
+                                {% elif order.status == 'delivered' %}
+                                    ✅ Доставлен
+                                {% endif %}
+                            </p>
+                            <p><strong>Адрес:</strong> {{ order.address }}</p>
+                            <p><strong>Телефон:</strong> {{ order.phone }}</p>
+                            {% if order.comment %}
+                                <p><strong>Комментарий:</strong> {{ order.comment }}</p>
+                            {% endif %}
+
+                            <h5 class="mt-3">Товары:</h5>
+                            <ul class="list-group list-group-flush mb-3">
+                                {% for item in order.items.all %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ item.flower.name }} ({{ item.quantity }} шт.)
+                                        <span>{{ item.price }} ₽</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+
+                            <h5 class="text-end">Итого: {{ order.get_total_cost }} ₽</h5>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">У вас пока нет заказов.</div>
+    {% endif %}
+</div>
+{% endblock %}
