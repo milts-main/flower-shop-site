@@ -1,0 +1,18 @@
+python -m pip install --user virtualenv
+python -m venv env
+.\env\Scripts\activate
+python -m pip install Django
+
+django-admin startproject flower_shop
+cd flower_shop
+python manage.py startapp shop
+
+python manage.py makemigrations
+python manage.py migrate
+
+python manage.py createsuperuser
+
+
+python manage.py runserver
+
+
