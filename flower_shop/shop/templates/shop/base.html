@@ -26,6 +26,11 @@
 
       <ul class="navbar-nav mb-2 mb-lg-0">
         {% if user.is_authenticated %}
+          {% if user.is_staff %}
+          <a href="{% url 'add_flower' %}" class="btn btn-outline-light ms-2">
+              ➕ Добавить цветок
+          </a>
+          {% endif %}
         <li class="nav-item">
           <a class="nav-link" href="{% url 'cart' %}">
             🛒 Корзина

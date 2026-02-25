@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView
+from django.contrib.admin.views.decorators import staff_member_required
 # Create your views here.
 
 
@@ -38,23 +39,57 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'shop/register.html', {'form': form})
 
+@staff_member_required
+def update_order_status(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        order.status = new_status
+        order.save()
+
+    return redirect('orders_history')
+
 @login_required
-@permission_required('shop.add_flower', raise_exception=True)
+@staff_member_required
 def add_flower(request):
-    order = Order.objects.filter(user=request.user, status='cart').first()
-    cart_count = order.items.count() if order else 0
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        stock = request.POST.get('stock')
+        image = request.FILES.get('image')
+
+        Flower.objects.create(
+            name=name,
+            description=description,
+            price=price,
+            stock=stock,
+            image=image
+        )
+
+        return redirect('catalog')
+
     return render(request, 'shop/add_flower.html')
 
 @login_required(login_url='register')  # неавторизованный → регистрация
 def add_to_cart(request, flower_id):
     flower = get_object_or_404(Flower, id=flower_id)
 
-    order, created = Order.objects.get_or_create(user=request.user, status='cart')
-    item, item_created = OrderItem.objects.get_or_create(order=order, flower=flower)
+    order, created = Order.objects.get_or_create(
+        user=request.user,
+        status='cart'
+    )
 
-    if not item_created:
+    item, created = OrderItem.objects.get_or_create(
+    order=order,
+    flower=flower,
+    defaults={'price': flower.price}
+    )
+
+    if not created:
         item.quantity += 1
-    item.save()
+        item.save()
 
     return redirect('cart')
 
@@ -87,22 +122,24 @@ def cart(request):
 
 @login_required
 def checkout(request):
-    if not request.user.is_authenticated:
-        return redirect('login')  # или на вашу страницу входа
-
     order = Order.objects.filter(user=request.user, status='cart').first()
+
     if not order:
-        order = None  # или redirect('cart')
+        return redirect('cart')
 
     if request.method == 'POST':
-        # здесь логика создания заказа
-        order.status = 'new'
+        order.address = request.POST.get('address')
+        order.phone = request.POST.get('phone')
+        order.comment = request.POST.get('comment')
+
+        order.status = 'placed'   # 👈 у тебя такой статус в модели!
         order.save()
+
         return redirect('orders_history')
 
     return render(request, 'shop/checkout.html', {
         'order': order,
-        'items': order.items.all() if order else []
+        'items': order.items.all()
     })
 
 # @login_required
@@ -140,14 +177,20 @@ def decrease_quantity(request, item_id):
 
 @login_required
 def orders_history(request):
-    orders = Order.objects.filter(user=request.user).order_by('-date')
 
-    order = Order.objects.filter(user=request.user, status='cart').first()
-    cart_count = order.items.count() if order else 0
+    # Если менеджер — показываем ВСЕ заказы
+    if request.user.is_staff:
+        orders = Order.objects.exclude(status='cart').order_by('-date')
+
+    # Если обычный пользователь — только его
+    else:
+        orders = Order.objects.filter(
+            user=request.user
+        ).exclude(status='cart').order_by('-date')
 
     return render(request, 'shop/orders_history.html', {
         'orders': orders,
-        'cart_count': cart_count
+        'Order': Order
     })
 @login_required
 def order_detail(request, order_id):

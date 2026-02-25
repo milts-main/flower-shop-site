@@ -15,8 +15,11 @@ class Flower(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('cart', 'В корзине'),
-        ('placed', 'Оформлен'),
+    ('cart', 'В корзине'),
+    ('placed', 'Оформлен'),
+    ('processing', 'В обработке'),
+    ('delivered', 'Доставлен'),
+    ('cancelled', 'Отменён'),
     ]
     address = models.CharField(max_length=255, null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
